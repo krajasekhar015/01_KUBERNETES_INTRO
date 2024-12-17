@@ -1,0 +1,135 @@
+apiVersion: kops.k8s.io/v1alpha2
+kind: Cluster
+metadata:
+  creationTimestamp: null
+  name: awsdevsecops.site
+spec:
+  api:
+    dns: {}
+  authorization:
+    rbac: {}
+  channel: stable
+  cloudProvider: aws
+  configBase: s3://awsdevsecops.site/awsdevsecops.site
+  dnsZone: awsdevsecops.site
+  etcdClusters:
+  - cpuRequest: 200m
+    etcdMembers:
+    - encryptedVolume: true
+      instanceGroup: control-plane-us-east-1a
+      name: a
+    manager:
+      backupRetentionDays: 90
+    memoryRequest: 100Mi
+    name: main
+  - cpuRequest: 100m
+    etcdMembers:
+    - encryptedVolume: true
+      instanceGroup: control-plane-us-east-1a
+      name: a
+    manager:
+      backupRetentionDays: 90
+    memoryRequest: 100Mi
+    name: events
+  iam:
+    allowContainerRegistry: true
+    legacy: false
+  kubeProxy:
+    enabled: false
+  kubelet:
+    anonymousAuth: false
+  kubernetesApiAccess:
+  - 0.0.0.0/0
+  - ::/0
+  kubernetesVersion: 1.30.7
+  masterPublicName: api.awsdevsecops.site
+  networkCIDR: 172.20.0.0/16
+  networking:
+    cilium:
+      enableNodePort: true
+  nonMasqueradeCIDR: 100.64.0.0/10
+  sshAccess:
+  - 0.0.0.0/0
+  - ::/0
+  subnets:
+  - cidr: 172.20.0.0/17
+    name: us-east-1a
+    type: Public
+    zone: us-east-1a
+  - cidr: 172.20.128.0/17
+    name: us-east-1b
+    type: Public
+    zone: us-east-1b
+  topology:
+    dns:
+      type: Public
+
+---
+
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: awsdevsecops.site
+  name: control-plane-us-east-1a
+spec:
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20241120
+  machineType: t3.medium
+  maxSize: 1
+  minSize: 1
+  role: Master
+  rootVolumeSize: 10
+  subnets:
+  - us-east-1a
+
+---
+
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: awsdevsecops.site
+  name: nodes-us-east-1a
+spec:
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20241120
+  machineType: t3.medium
+  maxSize: 1
+  minSize: 1
+  role: Node
+  rootVolumeSize: 10
+  subnets:
+  - us-east-1a
+
+---
+
+apiVersion: kops.k8s.io/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: awsdevsecops.site
+  name: nodes-us-east-1b
+spec:
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20241120
+  machineType: t3.medium
+  maxSize: 1
+  minSize: 1
+  role: Node
+  rootVolumeSize: 10
+  subnets:
+  - us-east-1b
+
+---
+
+apiVersion: kops.k8s.io/v1alpha2
+kind: SSHCredential
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: awsdevsecops.site
+  name: admin
+spec:
+  publicKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCmb41mbDukWdedjaVqdYOTOGNu8iWO6rs86X225Qv8QflhHFOVvjwVqrOiqgR9BuJ2o1wmynW2e0slBIdk9YmxauPUflLNj4OtgF74erL8Nocpq/H1TOUieCe1O35engnB0ri9JqvxEY1+xgcHnvRDrUmmrI+NtcxvzBdCTzwZNmi+BGbBuJVStawwhLXx6AVYbaQ/ppg7o8ksrx/oCHGayVZttmDnyEJ60pMBIup4GqO8DGvwcVgqZ5VFC0se03Xk4jdGB9j9QXoeSPJMwm3S883i+/hxd5moHsUHNWdPqMFJxoCconbiu4NVKjWzMEG4mwlWXyc9SDxnISSfENr9HgfGRVhjVFI1a4FvdFq2uqwgatcXO4i93sKEtWFR1HZhHnkZ2SlA5l+q6UuyDJD2VdIistNT5oOLv8EZRY6AdNbZ9q9CeXkiTfPCRZx/vUlDYAbwP3XCg1XQ+Z1StXKI8odsy6OeXNXovqW5+js3Gn7QqXIzfJk7JA5AJCEpzdc=
+    root@ip-172-31-94-22.ec2.internal
